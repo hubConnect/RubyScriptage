@@ -1,0 +1,392 @@
+Thread.abort_on_exception=true
+
+rangedAmmo = Hash.new()
+meleeWeapons = Hash.new()
+thrownWeapons = Hash.new()
+rangedWeapons = Hash.new()
+
+
+trainStealth = true
+#meleeWeapons["pick"] = "Large Edged"
+meleeWeapons["telek"] = "Small Edged"
+meleeWeapons["cosh"] = "Small Blunt"
+meleeWeapons["brawl"] = "Brawling"
+thrownWeapons["rock"] = "Light Thrown"
+rangedWeapons["sling"] = "Slings"
+rangedWeapons["crossbow"] = "Crossbow"
+rangedAmmo["crossbow ammo"] = "bolt"
+rangedAmmo["sling ammo"] = "shard"
+rangedWeapons["bow"] = "Bow"
+rangedAmmo["bow ammo"] = "arrow"
+
+BAIL_OUT_HEALTH = 30
+STAMINA_FREEZE = 40
+COLLECT_ITEM = "rock"
+LEARNING_RATE = 30
+BACKSTAB_TARGET = "head"
+TimeOut = 360.0
+scriptPaused = false  
+
+start_script ( "drinfomon" )
+start_script ("combatlooter")
+start_script ("khrimanager")
+start_script ("vitalitywatch")
+
+def self.rangedLoop(skill,weapon,ammo)
+  timeRoutineStarted = Time.now
+  waitrt?
+  fput "stance shield"
+  
+			while DRSkill.getxp(skill) == nil || DRSkill.getxp(skill) < LEARNING_RATE do
+			
+				begin 
+					waitrt?
+					fput "count creature"
+					creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+					pause
+				end while creature == "no" || creature == nil
+				attacking = true
+				
+				if !GameObj.right_hand.name.include? "weapon"
+					echo "NOT IN HAND"
+					fput "get " + weapon
+				end
+				
+				begin	
+					while creature.include? "no" || creature == nil do
+						fput "collect " + COLLECT_ITEM
+						waitrt?
+						fput "kick pile"
+						waitrt?
+						fput "count creature"
+						creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+						pause
+					end
+					
+					waitrt?
+					fput "load"
+					pause
+					waitrt?
+					fput "aim"
+					pause
+					creature = matchtimeout 3, "There is nothing else to face!","You ? to target","You are already targetting that"
+
+					if creature.instance_of? String
+						if creature.include? "There is nothing else to face"
+							creature = "no"
+						end
+					else 
+						creature.find { |e| /There is nothing else to face/ =~ e } 
+					end
+					
+					pause 5
+					fput "weave"
+					pause
+					waitrt?
+					fput "hide"
+					pause
+					waitrt?
+					fput "stalk"
+					pause
+					waitrt?
+					if checkhidden 
+						fput "poach"
+					else fput "fire"
+					end
+					
+					ammoCleaned = false
+	
+					while !ammoCleaned do
+						fput "stow " + ammo
+							pause
+						ammoCleanedCheck = matchtimeout 3, "Stow ?","You pick ?","You put ?","...?"
+						if ammoCleanedCheck.instance_of? String
+							if ammoCleanedCheck.include? "what"
+								ammoCleaned = true
+							end
+						elsif ammoCleanedCheck.find { |e| /what/ =~ e } 
+							ammoCleaned = true
+						end
+					end
+          
+          if (Time.now - timeRoutineStarted) > TimeOut
+            attacking = false
+          end
+					
+					if DRSkill.getxp(skill) > 20
+						attacking = false
+					end
+				end while attacking == true
+				
+				pause
+			end
+
+      waitrt?
+      fput "stance custom"
+	end
+	
+	
+def	self.thrownLoop (skill, weapon)
+  timeRoutineStarted = Time.now
+
+			while DRSkill.getxp(skill) == nil || DRSkill.getxp(skill) < 20 do
+			
+				begin 
+					waitrt?
+					fput "count creature"
+					creature = matchfindexact "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+					sleep(1)
+				end while creature == "no" || creature == nil
+				attacking = true
+				
+				begin
+				
+					echo 'about to get count again'
+					while creature.include? "no" || creature == nil do
+						fput "collect " + COLLECT_ITEM
+						waitrt?
+						fput "kick pile"
+						waitrt?
+						fput "count creature"
+						creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+						pause
+					end
+					
+					
+					if !GameObj.right_hand.name.include? weapon
+						echo weapon + " NOT IN HAND " + GameObj.right_hand.name
+						pause
+						fput "get " + weapon
+					end
+					
+					pause
+					fput "throw"
+					waitrt?
+					
+					creature = matchtimeout 3, "There is nothing else to face!","You ? to target","You are already targetting that","Roundtime","wait","Sorry"
+					
+					if creature.instance_of? String
+					
+						if creature.include? "There is nothing else to face"
+							creature = "no"
+						end
+					else 
+						creature.find { |e| /There is nothing else to face/ =~ e } 
+
+					end
+					
+          
+          if (Time.now - timeRoutineStarted) > TimeOut
+            attacking = false
+          end
+					
+					if DRSkill.getxp(skill) > 20
+						attacking = false
+					end
+				end while attacking == true
+				pause
+			end
+	end	
+	
+def	self.meleeLoop (skill, weapon)
+  
+  scriptPaused = false
+  timeRoutineStarted = Time.now
+			while DRSkill.getxp(skill) == nil || DRSkill.getxp(skill) < 20 do
+				begin 
+					waitrt?
+					fput "count creature"
+					creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+					pause
+				end while creature == "no" || creature == nil
+				attacking = true
+				
+				begin
+			
+					while creature.include? "no" || creature == nil do
+						echo creature + " "
+						fput "collect " + COLLECT_ITEM
+						waitrt?
+						fput "kick pile"
+						waitrt?
+						fput "count creature"
+						creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+						waitrt?
+					end 
+					
+					fput "attack"
+					waitrt?
+					
+					echo "tester"
+					creature = matchtimeout 3, "There is nothing else to face!","You ? to target","You are already targetting that","Roundtime","wait","Sorry"
+					
+					if creature.instance_of? String
+					
+						if creature.include? "There is nothing else to face"
+							creature = "no"
+						end
+					else 
+						creature.find { |e| /There is nothing else to face/ =~ e } 
+					
+					end
+          echo "here"
+          
+          while scriptPaused == true
+            echo "looping right here"
+            sleep(1)
+          end 
+          echo " Time is " + Time.now.to_s + " and started at " + timeRoutineStarted.to_s + " and TimeOut is " + TimeOut.to_s + " with the diff being " + (Time.now - timeRoutineStarted).to_s
+          if (Time.now - timeRoutineStarted) > TimeOut
+            attacking = false
+          end
+          
+					if DRSkill.getxp(skill) > 20
+						attacking = false
+					end
+				end while attacking == true
+				pause
+				put "attack"
+			end
+	end
+
+def self.backstabLoop (skill,weapon) 
+			fput "get " + weapon
+			timeRoutineStarted = Time.now
+
+			while DRSkill.getxp(skill) == nil || DRSkill.getxp(skill) < LEARNING_RATE do
+				begin 
+					waitrt?
+					fput "count creature"
+					creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+					pause
+				end while creature == "no" || creature == nil
+				attacking = true
+				
+				begin
+			
+					while creature == "no" || creature == nil do
+					
+						echo creature + " "
+						fput "collect " + COLLECT_ITEM
+						waitrt?
+						fput "kick pile"
+						waitrt?
+						fput "count creature"
+						creature = matchtimeout 5, "You notice ? dangerous creatures in the area.", "You notice ? dangerous creatures in the area.","You notice only ? dangerous creature in the area,"
+						waitrt?
+					end 
+					
+					fput "hide"
+					pause
+					waitrt?
+					
+					if checkhidden
+						fput "ambush stun"
+					end
+					
+					waitrt?
+					
+					creature = matchtimeout 3, "There is nothing else to face!","You ? to target","You are already targetting that","Roundtime","wait","Sorry"
+					
+					if creature.instance_of? String
+					
+						if creature.include? "There is nothing else to face"
+							creature = "no"
+						end
+					else 
+						creature.find { |e| /There is nothing else to face/ =~ e } 
+
+					end
+          
+          if (Time.now - timeRoutineStarted) > TimeOut
+            attacking = false
+          end
+					if DRSkill.getxp(skill) > 20
+						attacking = false
+					end
+				end while attacking == true
+			end
+end			
+
+	
+def self.TrainMeleeWeapons(listOfWeapons)
+	
+	listOfWeapons.keys.each {|x| 
+		fput "stow left"
+		fput "stow right"
+		waitrt?
+		pause
+		fput "get " + x
+		wait
+		pause
+		if !GameObj.right_hand.name.include? x 
+			
+			fput "get " + x
+			wait
+			pause
+			
+			if !GameObj.right_hand.name.include? x 
+				if GameObj.left_hand.name.include? x
+					fput "swap"
+					pause
+				end
+			end
+		end
+		if GameObj.right_hand.name.include? x 
+			self.meleeLoop(listOfWeapons[x],x)
+		end
+	}
+end	
+
+def self.TrainRangedWeapons(listOfWeapons,listOfAmmo)
+	
+	listOfWeapons.keys.each {|x| 
+	
+		fput "stow left"
+		fput "stow right"	
+		fput "get " + x
+		if GameObj.right_hand.name.include? x 
+		end
+		self.rangedLoop(listOfWeapons[x],x,listOfAmmo[x + " ammo"])
+	}
+end
+
+def self.TrainThrownWeapons(listOfWeapons)
+	
+	listOfWeapons.keys.each {|x| 
+	
+		fput "stow left"
+		fput "stow right"
+		self.thrownLoop(listOfWeapons[x],x)
+	}
+end
+
+def self.VitalityWatch (thread)
+
+
+
+
+end
+
+
+start:
+		combatThread = Thread.new { 
+		  echo "kaBOOM"
+			self.TrainMeleeWeapons(meleeWeapons)
+			self.TrainRangedWeapons(rangedWeapons,rangedAmmo)
+			self.TrainThrownWeapons(thrownWeapons)
+			self.backstabLoop("Backstab","short sword")
+			
+		}
+		Thread.new { 
+			self.VitalityWatch(combatThread)
+			
+			report_errors { 5/0 } 
+		}
+    
+		loop {
+			pause
+		}
+		
+	
+	

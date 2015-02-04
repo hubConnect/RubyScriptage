@@ -1,0 +1,52 @@
+creature = "hog"
+
+def self.cleanUp(item)
+
+  ammoCleaned = false
+  
+	while !ammoCleaned do
+    
+		pause
+  	fput "stow " + item
+      
+		ammoCleanedCheck = matchtimeout 3, "Stow ?","You pick ?","You put ?","...?"
+    
+		if ammoCleanedCheck.instance_of? String
+			if ammoCleanedCheck.include? "what"
+				ammoCleaned = true
+			end
+		elsif ammoCleanedCheck.find { |e| /what/ =~ e } 
+			ammoCleaned = true
+		end
+	end
+end
+
+
+looterstart:
+
+		match "LootCreature", "which appears dead"
+		match "LootCreature","balanced\]"
+	fput "look"
+		matchwait
+		
+		
+		
+LootCreature:
+
+pause_script ("combat")
+fput "perform preserve on " + creature
+if DRSkill.getxp("Thanatology") == nil || DRSkill.getxp("Thanatology") > 0 
+  # healUp 
+  fput "health"
+end
+fput "arrange"
+fput "skin"
+fput "loot"
+self.cleanUp('coin')
+self.cleanUp('gem')
+self.cleanUp('box')
+pause
+pause
+unpause_script("combat")
+pause 5
+goto "looterstart"

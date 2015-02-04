@@ -1,0 +1,148 @@
+BAIL_OUT_HEALTH = 40
+HIDE_HEALTH = 70
+STAMINA_FREEZE = 40
+
+
+def self.Fold (item)
+  pause_script("combat")
+  
+  righthand = checkright
+  lefthand = checkleft
+  
+  echo righthand
+  echo lefthand
+  
+  if righthand
+    fput "stow right"
+  end
+  if lefthand
+    fput "stow left"
+  end
+  
+  fput "get primer from wov sack"
+  fput "pull env"
+  fput "retreat"
+  fput "retreat"
+  fput "study " + item + " inst"
+  pause 1
+  waitrt?
+  fput "put primer in my wov sack"
+  
+  pause 1
+  
+  if checkright
+    if righthand.include? "primer"
+      waitrt?
+      fput "put primer in wov sack"
+    end
+  end
+  
+  if checkleft
+    if lefthand.include? "primer"
+      waitrt?
+      fput "put primer in wov sack"
+    end
+  end
+  
+  loop {
+
+    waitrt?
+    fput "retreat"
+    fput "retreat"
+    waitrt?
+    fput "fold my paper"
+    success = matchtimeout 5, "You make the final fold and gaze proudly .+"
+    if success
+      break
+    end
+    
+  }
+  
+  if checkleft
+    fput "exhale " + checkleft
+  end
+  
+  if checkright
+    fput "exhale " + checkright
+  end
+  if righthand
+    fput "get my " + righthand
+  end
+  if lefthand
+    fput "get my " + lefthand
+  end
+  unpause_script("combat")
+end
+
+def self.Collect (item)
+  
+	fput "retreat"
+	fput "retreat"
+	fput "collect " + item
+  fput "kick " + item
+	
+end
+
+	loop {
+    self.Fold "star"
+		
+		scriptPaused = false;
+		pause 2
+		
+		while checkhealth < HIDE_HEALTH
+
+      pause_script("combat")
+  		if checkhealth < BAIL_OUT_HEALTH 
+		
+  			echo " "
+  			echo "GETING TOO LOW ON HP"
+  			echo " "
+  			fput "quit"
+  		end
+		  if checkhidden == false 
+        fput "hide"
+      end
+
+      unpause_script("combat")
+		end
+    
+		
+		while checkstamina < STAMINA_FREEZE
+		
+			echo " "
+			echo "GETING LOW ON STAMINA"
+			echo " "
+			scriptPaused = true
+      pause_script("combat")
+      
+			while checkstamina < (STAMINA_FREEZE + 30)
+        
+			  sleep(5)
+        echo "sleep"
+
+if DRSkill.getxp('Perception') == nil
+  echo "First"
+  self.Collect "rock"
+elsif DRSkill.getxp('Mechanical Lore') == nil
+  echo "here"
+  self.Fold "star"
+elsif DRSkill.getxp('Perception') < DRSkill.getxp('Mechanical Lore')
+  self.Collect "rock"
+else
+  echo "LAST ONE"
+  self.Fold "star"
+end
+      end
+      
+      echo "end"
+		end
+		
+		if scriptPaused 
+			unpause_script("combat")
+      scriptPaused = false
+		end
+		if checkprone
+			fput "stand"
+		end
+	}
+  
